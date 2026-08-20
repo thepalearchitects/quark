@@ -1,5 +1,5 @@
 // styles/tokens.ts
-// Source of truth for the entire design system
+// design tokens — keep this in sync with globals.css @theme
 
 export const colors = {
   void: '#0A0A0A',

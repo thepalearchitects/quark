@@ -3,20 +3,20 @@ import { create } from 'zustand'
 import { ConsoleLog } from '@/lib/types'
 
 interface EditorState {
-  // Tabs
+  // open tabs
   openFiles: string[] // file IDs
   activeFileId: string | null
 
-  // Content
+  // buffered file contents (keyed by file ID)
   fileContents: Record<string, string> // fileId -> content
   dirtyFiles: Record<string, boolean> // fileId -> isDirty
 
-  // Console Logs & Settings
+  // console state + responsive preview device
   consoleLogs: ConsoleLog[]
   isConsoleOpen: boolean
   activeDevice: 'desktop' | 'tablet' | 'mobile'
 
-  // Actions
+  // actions
   openFile: (fileId: string, content?: string) => void
   closeFile: (fileId: string) => void
   setActiveFile: (fileId: string) => void

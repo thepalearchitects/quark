@@ -27,10 +27,10 @@ export function EditorTopBar() {
     if (!currentProject) return
     setIsSaving(true)
 
-    // Simulate saving network latency
+    // fake some save latency so it doesn't feel instant
     await new Promise((resolve) => setTimeout(resolve, 600))
 
-    // Recursively compile contents from editorStore back into project files tree
+    // walk the file tree and flush editorStore buffers into the project
     const saveFilesRecursive = (nodes: FileNode[]): FileNode[] => {
       return nodes.map((node) => {
         if (node.type === 'file') {
@@ -58,7 +58,7 @@ export function EditorTopBar() {
 
     updateProject(updatedProject)
 
-    // Mark files clean
+    // all good, mark clean
     Object.keys(dirtyFiles).forEach((id) => markClean(id))
     setIsSaving(false)
   }
@@ -67,7 +67,7 @@ export function EditorTopBar() {
     if (!currentProject) return
     setIsPublishing(true)
     await new Promise((resolve) => setTimeout(resolve, 800))
-    // Toggle visibility to public
+    // flip to public — TODO: this should call an API
     const updatedProject = {
       ...currentProject,
       visibility: 'public' as const,

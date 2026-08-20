@@ -8,7 +8,7 @@ import { useProjectStore } from '@/lib/store/projectStore'
 import { FileNode } from '@/lib/types'
 import type { Monaco } from '@monaco-editor/react'
 
-// Dynamically import Monaco Editor to exclude it from SSR bundles per blueprint spec
+// monaco doesn't play well with SSR — dynamic import only
 const Editor = dynamic(() => import('@monaco-editor/react'), {
   ssr: false,
   loading: () => (
@@ -56,7 +56,7 @@ export function CodePane() {
   }
 
   const handleEditorWillMount = (monaco: Monaco) => {
-    // Define custom Quark theme per section 1.1 of design blueprint
+    // custom dark theme to match our void/ink palette
     monaco.editor.defineTheme('quark-dark', {
       base: 'vs-dark',
       inherit: true,

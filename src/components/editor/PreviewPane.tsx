@@ -21,7 +21,7 @@ export function PreviewPane() {
   const [isFullscreen, setIsFullscreen] = useState(false)
   const iframeRef = useRef<HTMLIFrameElement>(null)
 
-  // Listen to message events from the sandboxed iframe for console logs
+  // bridge messages from the iframe sandbox back to our console drawer
   useEffect(() => {
     const handleMessage = (e: MessageEvent) => {
       if (e.data && e.data.source === 'QUARK_PREVIEW') {
@@ -33,7 +33,7 @@ export function PreviewPane() {
     return () => window.removeEventListener('message', handleMessage)
   }, [addConsoleLog])
 
-  // Recompile index.html, style.css, and script.js recursively with local edited cache
+  // merge the persisted file tree with any unsaved edits from the buffer
   useEffect(() => {
     if (!currentProject) return
 
@@ -58,7 +58,7 @@ export function PreviewPane() {
     const compiledFiles = getCompiledFiles(currentProject.files)
     const doc = buildSrcDoc(compiledFiles)
 
-    // Debounce updates
+    // debounce so we're not rebuilding the srcdoc on every single keystroke
     const timeout = setTimeout(() => {
       setSrcDoc(doc)
     }, 300)

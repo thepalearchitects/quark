@@ -1,3 +1,4 @@
+
 import { FileNode } from "../types";
 
 export function buildSrcDoc(files: FileNode[]): string {
@@ -21,7 +22,7 @@ export function buildSrcDoc(files: FileNode[]): string {
   const cssContent = fileMap.get("styles.css") || fileMap.get("style.css") || "";
   const jsContent = fileMap.get("script.js") || fileMap.get("main.js") || fileMap.get("app.js") || "";
 
-  // Console & Error Interceptor script injected into preview iframe
+  // intercept console.* and window.onerror, pipe them back via postMessage
   const bridgeScript = `
 <script>
 (function() {
@@ -75,7 +76,7 @@ export function buildSrcDoc(files: FileNode[]): string {
 </script>
 `;
 
-  // Inject Bridge Script and Styles into HTML
+  // stitch it all together — bridge + styles into <head>, js before </body>
   let compiledHtml = htmlContent;
 
   if (compiledHtml.includes("</head>")) {

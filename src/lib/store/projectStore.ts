@@ -59,7 +59,7 @@ export const useProjectStore = create<ProjectState>((set, get) => ({
         }
       }
     }
-    // Fallback to mock data if nothing in localStorage
+    // nothing in localStorage yet — seed from mock data
     set({ projects: mockProjects, isLoading: false })
     if (typeof window !== 'undefined') {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(mockProjects))

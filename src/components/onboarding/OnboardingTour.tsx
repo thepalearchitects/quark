@@ -50,10 +50,10 @@ export function OnboardingTour() {
   const [hasCompleted, setHasCompleted] = useState(false)
 
   useEffect(() => {
-    // Check if user has completed onboarding before
+    // skip if they've already gone through it
     const completed = localStorage.getItem('quark_onboarding_complete')
     if (!completed) {
-      // Check if this is a new user (first visit)
+      // first time here? show the tour after a tick
       const hasVisited = localStorage.getItem('quark_visited')
       if (!hasVisited) {
         setTimeout(() => setIsOpen(true), 0)

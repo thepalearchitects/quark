@@ -7,12 +7,11 @@ import { useEffect, useState } from 'react'
 export default function Loading() {
   const [show] = useState(true)
 
-  // Show loader after a tiny delay to prevent flashing on fast transitions
-  // Then ensure it stays visible for at least 600ms for smooth UX
+  // prevent flashing on fast loads, keep it up for at least 600ms
   useEffect(() => {
     const startTime = Date.now()
     
-    // Ensure minimum display time of 600ms
+    // bail out early if we haven't hit the minimum
     return () => {
       const elapsed = Date.now() - startTime
       if (elapsed < 600) {
