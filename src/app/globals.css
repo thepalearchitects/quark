@@ -1,0 +1,241 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+
+@import "tailwindcss";
+
+:root {
+  --void: #0A0A0A;
+  --surface: #1A1A1A;
+  --surface-2: #141414;
+  --ink: #FFFFFF;
+  --ink-dim: #8A8A8F;
+  --ink-faint: #55555A;
+  --line: #2A2A2E;
+  --quark-blue: #4D8DFF;
+  --quark-green: #3ECF8E;
+  --quark-red: #FF4545;
+}
+
+@theme {
+  --color-void: var(--void);
+  --color-surface: var(--surface);
+  --color-surface2: var(--surface-2);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-inkDim: var(--ink-dim);
+  --color-ink-dim: var(--ink-dim);
+  --color-inkFaint: var(--ink-faint);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  
+  --color-quarkBlue: var(--quark-blue);
+  --color-quark-blue: var(--quark-blue);
+  --color-quarkGreen: var(--quark-green);
+  --color-quark-green: var(--quark-green);
+  --color-quarkRed: var(--quark-red);
+  --color-quark-red: var(--quark-red);
+
+  --font-ui: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+  
+  --radius: 3px;
+  --radius-none: 0px;
+  --border-width: 0.75px;
+
+  --shadow-snap-blue: 3px 3px 0 #4D8DFF;
+  --shadow-snap-red: 3px 3px 0 #FF4545;
+  --shadow-snap-hover-blue: 4px 4px 0 #4D8DFF;
+  --shadow-snap-hover-red: 4px 4px 0 #FF4545;
+}
+
+/* ---------- BASE LAYER ---------- */
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  background-color: var(--void);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  line-height: 1.5;
+  margin: 0;
+  padding: 0;
+}
+
+::selection {
+  background: var(--quark-blue);
+  color: var(--void);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-2);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--line);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ink-dim);
+}
+
+*:focus-visible {
+  outline: 2px solid var(--quark-blue);
+  outline-offset: 2px;
+}
+
+a {
+  color: var(--quark-blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Force border-radius to 3px globally across everything per user preference */
+* {
+  border-radius: 3px;
+}
+
+/* Font utility */
+.mono {
+  font-family: var(--font-mono);
+}
+
+.font-ui {
+  font-family: var(--font-ui);
+}
+
+/* Snap shadow utilities */
+.snap {
+  transition: transform 0.06s steps(1), box-shadow 0.06s steps(1);
+}
+
+.snap:hover,
+.snap:focus-visible {
+  transform: translate(-4px, -4px);
+}
+
+.snap-blue:hover,
+.snap-blue:focus-visible {
+  box-shadow: 4px 4px 0 var(--quark-blue);
+}
+
+.snap-red:hover,
+.snap-red:focus-visible {
+  box-shadow: 4px 4px 0 var(--quark-red);
+}
+
+.shadow-snap-blue {
+  box-shadow: 3px 3px 0 var(--quark-blue);
+}
+
+.shadow-snap-red {
+  box-shadow: 3px 3px 0 var(--quark-red);
+}
+
+/* Custom interactive buttons from existing workspace */
+.snap-btn-primary {
+  background-color: var(--ink);
+  color: var(--void);
+  border: 0.75px solid var(--ink);
+  border-radius: 3px;
+  transition: none;
+}
+.snap-btn-primary:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 3px 3px 0 0 var(--quark-blue);
+}
+
+.snap-btn-secondary {
+  background-color: transparent;
+  color: var(--ink);
+  border: 0.75px solid var(--line);
+  border-radius: 3px;
+  transition: none;
+}
+.snap-btn-secondary:hover {
+  border-color: var(--ink);
+  transform: translate(-3px, -3px);
+  box-shadow: 3px 3px 0 0 var(--ink);
+}
+
+.snap-btn-destructive {
+  background-color: transparent;
+  color: var(--quark-red);
+  border: 0.75px solid var(--quark-red);
+  border-radius: 3px;
+  transition: none;
+}
+.snap-btn-destructive:hover {
+  transform: translate(-3px, -3px);
+  box-shadow: 3px 3px 0 0 var(--quark-red);
+}
+
+.snap-input {
+  background-color: var(--surface-2);
+  color: var(--ink);
+  border: 0.75px solid var(--line);
+  border-radius: 3px;
+  font-family: var(--font-ui);
+}
+.snap-input:focus {
+  border-color: var(--quark-blue);
+  transform: translate(-3px, -3px);
+  box-shadow: 3px 3px 0 0 var(--quark-blue);
+  outline: none;
+}
+
+.backdrop-blur-md {
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+}
+
+.text-balance {
+  /* hint-disable compat-api/css */
+  text-wrap: balance;
+  /* hint-enable compat-api/css */
+}
+
+/* Loading animations from original stylesheet */
+.q-loader {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.q-loader .q-sq {
+  fill: var(--quark-blue);
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: q-charge 1.2s steps(1) infinite;
+}
+
+.q-loader .q-sq:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.q-loader .q-sq:nth-child(3) {
+  animation-delay: 0.8s;
+}
+
+@keyframes q-charge {
+  0% {
+    opacity: 0.2;
+  }
+  33% {
+    opacity: 1;
+    fill: var(--quark-blue);
+  }
+  66% {
+    fill: var(--quark-green);
+  }
+  100% {
+    opacity: 0.2;
+  }
+}
