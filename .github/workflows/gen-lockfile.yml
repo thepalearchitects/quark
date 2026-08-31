@@ -20,11 +20,9 @@ jobs:
         with:
           node-version: '24'
 
-      - name: Clear NPM Cache & Install
+      - name: Generate Lockfile
         run: |
-          npm cache clean --force
-          rm -rf node_modules package-lock.json
-          npm install
+          npm install --package-lock-only
 
       - name: Commit and Push
         run: |
@@ -35,6 +33,6 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to package-lock.json detected."
           else
-            git commit -m "chore: generate Astro 6 package-lock.json [skip ci]"
+            git commit -m "chore: update package-lock.json [skip ci]"
             git push
           fi
