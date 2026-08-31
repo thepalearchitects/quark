@@ -9,20 +9,341 @@ export function getForkNotificationEmailHtml(
 <html>
 <head>
   <style>
-    body { font-family: 'Space Grotesk', monospace, sans-serif; background: #0A0A0A; color: #FFFFFF; padding: 32px; }
-    .card { background: #1A1A1A; border: 1px solid #2A2A2E; padding: 24px; max-width: 500px; margin: 0 auto; }
-    .badge { background: #141414; border: 1px solid #3ECF8E; color: #3ECF8E; padding: 4px 8px; font-family: monospace; font-size: 11px; }
-    .btn { display: inline-block; background: #FFFFFF; color: #0A0A0A; padding: 10px 20px; font-family: monospace; font-weight: bold; text-decoration: none; border-radius: 0; margin-top: 16px; }
+    /* ---------- QUARK DESIGN SYSTEM ---------- */
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body { 
+      font-family: 'Space Grotesk', 'SF Mono', monospace, sans-serif; 
+      background: #0A0A0A; 
+      color: #EBEBEF; 
+      padding: 40px 20px; 
+      line-height: 1.5;
+    }
+    
+    .container {
+      max-width: 560px;
+      margin: 0 auto;
+      background: #0F0F11;
+      border: 1px solid #1F1F23;
+      padding: 48px 40px;
+    }
+    
+    /* ---------- HEADER ---------- */
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      border-bottom: 1px solid #1F1F23;
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    
+    .logo-wordmark {
+      display: block;
+      height: 28px;
+      width: auto;
+    }
+    
+    .logo-wordmark svg {
+      display: block;
+      height: 100%;
+      width: auto;
+    }
+    
+    .badge {
+      font-family: monospace;
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #3ECF8E;
+      background: rgba(62, 207, 142, 0.08);
+      padding: 4px 12px;
+      border: 1px solid #3ECF8E;
+      margin-left: auto;
+      white-space: nowrap;
+    }
+    
+    /* ---------- TYPOGRAPHY ---------- */
+    h1 {
+      font-family: 'Space Grotesk', 'SF Mono', monospace;
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      color: #EBEBEF;
+      line-height: 1.1;
+      margin-bottom: 8px;
+    }
+    
+    h1 span {
+      color: #4D8DFF;
+    }
+    
+    .subhead {
+      font-family: 'SF Mono', 'Space Grotesk', monospace;
+      font-size: 14px;
+      color: #8A8A8F;
+      margin-bottom: 20px;
+    }
+    
+    .body-text {
+      font-size: 15px;
+      color: #B0B0B6;
+      margin-bottom: 8px;
+      line-height: 1.6;
+    }
+    
+    .body-text strong {
+      color: #EBEBEF;
+      font-weight: 600;
+    }
+    
+    .body-text .highlight {
+      color: #4D8DFF;
+    }
+    
+    .body-text .pen-title {
+      color: #EBEBEF;
+      font-weight: 600;
+      font-style: italic;
+    }
+    
+    /* ---------- DIVIDER ---------- */
+    .divider-line {
+      border: none;
+      border-top: 1px solid #1F1F23;
+      margin: 28px 0;
+    }
+    
+    /* ---------- CTA ---------- */
+    .btn-wrapper {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 4px;
+    }
+    
+    .btn {
+      display: inline-block;
+      background: #EBEBEF;
+      color: #0A0A0A;
+      padding: 14px 32px;
+      font-family: 'SF Mono', 'Space Grotesk', monospace;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-decoration: none;
+      text-transform: uppercase;
+      border: none;
+      transition: background 0.15s ease;
+    }
+    
+    .btn:hover {
+      background: #FFFFFF;
+    }
+    
+    .btn-secondary {
+      display: inline-block;
+      color: #8A8A8F;
+      font-family: 'SF Mono', monospace;
+      font-size: 13px;
+      text-decoration: none;
+      padding: 14px 0;
+    }
+    
+    .btn-secondary:hover {
+      color: #EBEBEF;
+    }
+    
+    /* ---------- FOOTER ---------- */
+    .footer {
+      margin-top: 40px;
+      padding-top: 24px;
+      border-top: 1px solid #1F1F23;
+      font-family: 'SF Mono', 'Space Grotesk', monospace;
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: #4A4A4F;
+    }
+    
+    .footer a {
+      color: #4A4A4F;
+      text-decoration: none;
+    }
+    
+    .footer a:hover {
+      color: #8A8A8F;
+    }
+    
+    .footer .divider {
+      display: inline-block;
+      margin: 0 8px;
+      color: #2A2A2E;
+    }
+    
+    /* ---------- RESPONSIVE ---------- */
+    @media (max-width: 480px) {
+      .container { padding: 32px 20px; }
+      h1 { font-size: 24px; }
+      .header { flex-wrap: wrap; }
+      .badge { margin-left: 0; }
+      .btn-secondary { display: block; }
+      .logo-wordmark { height: 22px; }
+    }
   </style>
 </head>
 <body>
-  <div class="card">
-    <span class="badge">NEW FORK ALERT</span>
-    <h3 style="margin-top:16px;">Someone forked your pen!</h3>
-    <p style="color:#8A8A8F; font-size:14px;">
-      <strong>${forkerName}</strong> created a fork of your pen <strong>"${penTitle}"</strong>.
+  <div class="container">
+    
+    <!-- HEADER with WORDMARK -->
+    <div class="header">
+      <div class="logo-wordmark">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1667.41 496.00">
+          <g transform="translate(48.000,48.000) scale(0.546478) translate(-146.020,-146.520)">
+            <g transform="translate(0,1024) scale(0.1,-0.1)">
+              <path d="M5555 8184 c-289 -124 -1037 -442 -1197 -510 l-137 -58 -29 -70 c-21
+              -51 -339 -811 -418 -1002 -3 -5 -137 -201 -298 -435 -162 -233 -293 -425 -292
+              -426 1 -1 83 32 181 73 l180 76 144 210 c79 115 147 206 151 201 5 -4 27 -77
+              50 -160 23 -84 46 -153 51 -153 5 0 114 53 243 117 129 65 237 115 240 112 3
+              -3 19 -144 36 -314 18 -171 32 -310 33 -311 1 0 128 -67 282 -149 404 -213
+              485 -258 485 -265 0 -4 -51 -65 -112 -136 -62 -72 -131 -151 -153 -176 -37
+              -43 -99 -76 -755 -406 l-715 -360 -150 63 c-876 365 -1141 478 -1147 488 -4 7
+              -8 60 -8 119 0 99 2 108 22 122 12 9 30 16 39 16 16 0 172 -71 688 -314 113
+              -53 208 -96 213 -96 15 0 10 216 -5 229 -8 6 -143 73 -301 149 -159 76 -288
+              142 -288 146 0 5 135 77 299 161 l298 151 3 113 3 113 -23 -5 c-13 -3 -264
+              -115 -558 -249 -294 -134 -550 -250 -568 -257 l-32 -14 2 -269 3 -269 540
+              -225 c297 -124 621 -259 720 -300 99 -42 198 -83 221 -91 l41 -16 698 352
+              c384 193 699 350 700 349 2 -2 30 -69 63 -149 l60 -147 -135 -233 c-75 -129
+              -230 -397 -345 -597 -115 -199 -212 -371 -215 -381 -3 -13 24 -57 90 -143 52
+              -67 213 -281 358 -473 145 -193 276 -365 290 -384 l26 -33 569 305 c313 167
+              634 339 714 382 80 43 341 182 580 310 239 128 479 256 532 284 96 52 97 52
+              107 99 5 26 35 151 65 277 31 127 132 547 226 935 93 388 202 836 240 995 39
+              160 70 297 70 307 0 9 -102 221 -226 472 -125 251 -225 459 -222 461 3 3 76
+              19 164 35 87 17 167 34 176 38 13 5 -56 55 -280 202 -163 107 -355 232 -425
+              279 l-128 83 208 92 c114 51 217 96 228 100 17 6 17 9 5 15 -8 5 -244 82 -525
+              171 -804 256 -965 307 -1212 386 -127 41 -233 74 -235 74 -1 -1 -93 -39 -203
+              -86z m515 -239 c427 -134 470 -149 462 -156 -6 -7 -360 -158 -1212 -518 -281
+              -118 -286 -121 -321 -168 -54 -73 -346 -478 -403 -561 l-51 -73 -236 -119
+              -237 -119 -38 136 -38 137 21 55 c11 31 98 244 193 473 l174 417 185 79 c102
+              44 368 157 591 252 223 95 450 192 505 216 55 23 107 41 115 39 8 -2 139 -43
+              290 -90z m840 -266 c124 -40 226 -73 228 -74 1 -1 -65 -31 -148 -66 -82 -35
+              -150 -66 -150 -69 0 -3 30 -24 68 -48 37 -23 73 -46 80 -50 10 -7 0 -53 -48
+              -213 -85 -284 -130 -429 -135 -429 -2 0 -252 61 -555 135 l-552 136 -92 -69
+              c-127 -97 -406 -309 -563 -430 -73 -56 -133 -96 -133 -90 0 18 182 662 190
+              671 6 7 243 108 975 417 160 67 355 150 435 185 80 35 152 64 160 64 8 1 116
+              -31 240 -70z m413 -525 c133 -86 248 -163 256 -169 11 -11 1 -14 -53 -20 -62
+              -7 -66 -9 -60 -29 4 -11 110 -228 236 -480 125 -252 227 -461 225 -463 -2 -2
+              -15 5 -28 15 -13 10 -240 166 -504 346 -264 181 -485 333 -492 340 -9 8 2 60
+              53 231 94 316 116 385 120 385 3 0 113 -70 247 -156z m-2405 -396 c-212 -755
+              -245 -863 -251 -823 -3 22 -16 140 -28 263 -22 208 -22 224 -7 250 16 27 321
+              452 324 452 1 0 -16 -64 -38 -142z m817 -103 l28 -80 -68 -118 -68 -119 -116
+              7 -116 6 -42 47 c-24 26 -42 50 -40 54 4 13 382 295 388 289 3 -3 19 -42 34
+              -86z m541 -22 c-13 -27 -396 -696 -400 -700 -2 -2 -67 21 -441 156 l-220 80
+              262 0 262 1 112 178 c62 97 132 207 156 245 l43 67 120 0 121 0 -15 -27z m504
+              11 c0 -8 -34 -126 -75 -262 -42 -136 -107 -348 -145 -472 -37 -124 -78 -256
+              -89 -295 l-21 -70 -342 -118 c-189 -65 -397 -137 -463 -159 l-120 -40 -320
+              171 c-176 94 -362 193 -412 219 -51 26 -93 51 -93 55 0 4 37 67 83 140 46 73
+              111 178 146 235 35 56 68 102 72 102 9 0 818 -285 868 -306 28 -12 37 -12 47
+              -2 7 7 90 148 185 313 95 165 199 346 231 403 l60 102 194 0 c169 0 194 -2
+              194 -16z m172 -229 c39 -71 111 -202 160 -289 48 -88 88 -162 88 -165 0 -3
+              -17 -15 -38 -27 -20 -11 -162 -89 -315 -173 -153 -84 -280 -151 -283 -148 -3
+              2 18 81 46 173 29 93 94 308 146 477 52 170 94 311 94 315 1 15 34 -38 102
+              -163z m288 -55 c375 -257 705 -484 733 -505 l27 -20 -121 -220 c-215 -390
+              -733 -1334 -839 -1530 -56 -104 -106 -194 -110 -198 -4 -5 8 58 27 140 47 205
+              167 734 269 1188 47 209 103 458 125 553 21 96 39 183 39 194 0 14 -267 395
+              -384 547 -16 21 -9 17 234 -149z m-317 -1064 c-153 -306 -281 -556 -286 -556
+              -11 0 -980 420 -990 429 -4 4 187 74 424 157 l432 149 346 192 c190 105 347
+              190 349 188 2 -1 -122 -253 -275 -559z m947 -33 c-37 -153 -100 -411 -139
+              -573 -186 -776 -300 -1242 -303 -1245 -4 -4 -805 -433 -866 -464 l-43 -22 12
+              23 c7 13 95 174 197 358 101 184 221 403 267 485 45 83 128 236 185 340 57
+              105 135 249 175 320 39 72 185 338 325 593 139 254 254 462 255 462 1 0 -28
+              -125 -65 -277z m-2080 -250 c118 -52 312 -135 430 -186 l214 -92 -604 -3
+              c-332 -1 -605 0 -608 2 -2 3 36 51 85 108 49 57 122 142 162 190 54 65 77 85
+              89 81 9 -4 114 -49 232 -100z m1220 -379 c-39 -170 -97 -426 -130 -569 -33
+              -143 -69 -305 -81 -360 -12 -55 -33 -122 -48 -150 -15 -27 -105 -190 -200
+              -362 l-172 -312 -92 -49 c-544 -291 -824 -441 -886 -475 l-75 -41 25 45 c31
+              53 331 565 479 814 59 99 252 428 430 730 l323 550 246 247 c135 136 246 246
+              248 244 2 -2 -28 -142 -67 -312z m-601 -311 c-12 -21 -220 -373 -462 -783
+              -720 -1221 -740 -1254 -752 -1273 -11 -15 -16 -12 -51 35 -22 29 -151 200
+              -287 381 l-248 327 107 185 107 185 231 142 c127 78 467 286 756 463 289 177
+              543 333 565 348 53 36 61 34 34 -10z M3752 5713 c-44 -112 -477 -1440 -470
+              -1444 17 -11 187 -7 202 5 12 9 486 1421 486 1447 0 5 -47 9 -105 9 -91 0
+              -107 -2 -113 -17z M4040 5425 l0 -115 48 -26 c26 -14 141 -75 255 -136 115
+              -61 205 -114 200 -119 -10 -9 -111 -65 -335 -184 l-168 -89 0 -113 c0 -78 4
+              -113 11 -113 7 0 156 76 333 169 177 92 390 204 473 247 84 44 153 82 153 85
+              0 8 -943 509 -959 509 -7 0 -11 -41 -11 -115z" fill="#FFFFFF" fill-rule="evenodd"/>
+            </g>
+          </g>
+          <g transform="translate(538.000,48.000) scale(1.005025)">
+            <g transform="translate(0,398) scale(0.1,-0.1)">
+              <path d="M935 3819 c-38 -5 -110 -20 -159 -34 -175 -50 -342 -158 -449 -290
+              -59 -73 -119 -194 -149 -301 -23 -79 -23 -81 -23 -854 0 -731 1 -779 19 -850
+              28 -110 61 -185 122 -277 146 -220 399 -353 716 -379 l88 -7 196 -326 c109
+              -179 202 -332 208 -339 9 -9 82 -12 319 -10 l307 3 -236 385 c-130 212 -239
+              392 -241 400 -2 10 14 25 47 43 28 16 81 56 117 90 112 106 184 230 226 395
+              22 86 22 94 22 862 l0 775 -23 85 c-13 47 -39 117 -57 155 -46 96 -126 198
+              -208 267 -85 70 -216 139 -328 171 -149 44 -343 57 -514 36z m351 -543 c32
+              -15 73 -41 91 -58 17 -16 44 -58 60 -92 l28 -61 0 -730 c0 -675 -1 -734 -18
+              -781 -23 -66 -77 -129 -138 -160 -98 -49 -280 -51 -388 -3 -63 28 -104 70
+              -138 143 l-28 61 0 735 0 735 23 49 c33 72 66 112 119 143 67 39 135 53 239
+              49 73 -2 102 -8 150 -30z M2250 2718 c0 -1143 2 -1184 49 -1321 90 -258 287 -441 562 -521 153
+              -44 345 -57 524 -35 320 39 571 206 695 462 21 45 49 120 62 167 l22 85 3
+              1118 4 1117 -300 0 -301 0 -2 -1087 -3 -1088 -23 -56 c-32 -81 -88 -140 -164
+              -175 -56 -25 -74 -29 -163 -29 -122 0 -184 19 -250 77 -52 46 -87 109 -104
+              186 -8 37 -11 366 -11 1112 l0 1060 -300 0 -300 0 0 -1072z M4571 2342 c-195 -796 -356 -1453 -359 -1460 -3 -10 59 -12 303 -10
+              l308 3 57 270 c32 149 63 296 69 328 l12 57 349 0 349 0 12 -57 c6 -32 37
+              -179 69 -328 l57 -270 308 -3 c244 -2 306 0 303 10 -3 7 -166 664 -363 1461
+              l-359 1447 -381 0 -380 0 -354 -1448z m863 278 c65 -331 116 -603 114 -606 -3
+              -2 -113 -3 -245 -2 l-240 3 88 420 c48 231 102 502 120 603 18 100 35 182 38
+              182 3 0 59 -270 125 -600z M6470 2331 l0 -1461 300 0 300 0 0 550 0 550 139 0 139 0 233 -546
+              c128 -300 238 -548 244 -550 5 -2 152 -3 326 -2 l317 3 -274 595 c-151 327
+              -274 596 -274 597 0 2 26 16 59 32 126 64 258 195 335 334 19 34 48 103 65
+              152 67 202 68 429 2 622 -99 290 -336 482 -691 559 -63 14 -166 18 -647 21
+              l-573 4 0 -1460z m1051 929 c80 -15 172 -64 218 -116 22 -26 50 -71 63 -103
+              18 -46 22 -76 23 -166 0 -105 -2 -114 -33 -177 -57 -117 -152 -178 -306 -198
+              -39 -5 -149 -10 -243 -10 l-173 0 0 390 0 390 199 0 c109 0 223 -5 252 -10z M8570 2330 l0 -1460 300 0 300 0 0 625 0 625 143 0 142 0 249 -625
+              250 -625 328 0 328 0 -13 32 c-8 18 -150 365 -316 770 l-303 738 301 683 c166
+              376 301 687 301 691 0 3 -145 5 -322 4 l-322 -3 -241 -565 -241 -565 -142 -3
+              -142 -3 0 571 0 570 -300 0 -300 0 0 -1460z" fill="#FFFFFF"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+      <span class="badge">✦ new fork</span>
+    </div>
+    
+    <!-- GREETING -->
+    <h1>
+      Someone forked<br />
+      <span>your pen.</span>
+    </h1>
+    <p class="subhead">Hey ${ownerName},</p>
+    
+    <!-- BODY -->
+    <p class="body-text">
+      <strong>${forkerName}</strong> created a fork of your pen{' '}
+      <span class="pen-title">"${penTitle}"</span>.
     </p>
-    <a href="${penUrl}" class="btn">VIEW FORKED PEN</a>
+    <p class="body-text" style="margin-top: 4px;">
+      Every fork is a chance to see where someone else takes your idea.
+      <span class="highlight">Charge, not decoration.</span>
+    </p>
+    
+    <hr class="divider-line" />
+    
+    <!-- CTA -->
+    <div class="btn-wrapper">
+      <a href="${penUrl}" class="btn">View forked pen →</a>
+      <a href="${penUrl.replace('/fork', '')}" class="btn-secondary">View original</a>
+    </div>
+    
+    <!-- FOOTER -->
+    <div class="footer">
+      charge, not decoration
+      <span class="divider">|</span>
+      rubber-duck debugging, built in
+    </div>
+    
   </div>
 </body>
 </html>

@@ -1,4 +1,10 @@
-export function getWelcomeEmailHtml(userName: string): string {
+export function getPaymentFailedEmailHtml(
+  userName: string,
+  planName: string,
+  amount: string,
+  retryUrl: string,
+  updatePaymentUrl: string
+): string {
   return `
 <!DOCTYPE html>
 <html>
@@ -25,7 +31,7 @@ export function getWelcomeEmailHtml(userName: string): string {
       overflow: hidden;
     }
     
-    /* ---------- WATERMARK (icon-only, 4% opacity like landing page) ---------- */
+    /* ---------- WATERMARK ---------- */
     .watermark {
       position: absolute;
       right: -60px;
@@ -93,7 +99,7 @@ export function getWelcomeEmailHtml(userName: string): string {
     }
     
     h1 span {
-      color: #4D8DFF;
+      color: #FF3B30;
     }
     
     .greeting {
@@ -119,38 +125,37 @@ export function getWelcomeEmailHtml(userName: string): string {
       font-weight: 600;
     }
     
-    /* ---------- FEATURE PILLS ---------- */
-    .features {
+    /* ---------- ALERT BOX ---------- */
+    .alert-box {
       position: relative;
       z-index: 1;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin: 28px 0 32px 0;
-      padding: 20px;
-      background: #141416;
-      border-left: 3px solid #4D8DFF;
+      background: rgba(255, 59, 48, 0.08);
+      border: 1px solid #FF3B30;
+      padding: 16px 20px;
+      margin: 20px 0 24px 0;
+      border-left: 3px solid #FF3B30;
     }
     
-    .feature {
-      font-family: 'SF Mono', 'Space Grotesk', monospace;
-      font-size: 13px;
-      color: #B0B0B6;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .feature::before {
-      content: "→";
-      color: #4D8DFF;
+    .alert-box .alert-title {
+      color: #FF3B30;
+      font-family: 'SF Mono', monospace;
+      font-size: 12px;
       font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    
+    .alert-box .alert-text {
+      color: #EBEBEF;
+      font-size: 14px;
+      margin-top: 4px;
     }
     
     /* ---------- CTA ---------- */
     .btn-wrapper {
       position: relative;
       z-index: 1;
+      margin: 4px 0 8px 0;
     }
     
     .btn {
@@ -165,7 +170,6 @@ export function getWelcomeEmailHtml(userName: string): string {
       text-decoration: none;
       text-transform: uppercase;
       border: none;
-      margin-top: 4px;
       transition: background 0.15s ease;
     }
     
@@ -200,15 +204,6 @@ export function getWelcomeEmailHtml(userName: string): string {
       color: #4A4A4F;
     }
     
-    .footer a {
-      color: #4A4A4F;
-      text-decoration: none;
-    }
-    
-    .footer a:hover {
-      color: #8A8A8F;
-    }
-    
     .footer .divider {
       display: inline-block;
       margin: 0 8px;
@@ -221,19 +216,19 @@ export function getWelcomeEmailHtml(userName: string): string {
       h1 { font-size: 26px; }
       .header { flex-wrap: wrap; }
       .btn-secondary { display: block; margin-left: 0; margin-top: 12px; }
+      .logo-wordmark { height: 24px; }
       .watermark { 
         right: -80px; 
         width: 220px; 
         height: 220px; 
       }
-      .logo-wordmark { height: 24px; }
     }
   </style>
 </head>
 <body>
   <div class="container">
     
-    <!-- WATERMARK: icon-only-white.svg at 4% opacity -->
+    <!-- WATERMARK -->
     <div class="watermark" aria-hidden="true">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="146.02 146.52 731.96 731.96">
         <g transform="translate(0,1024) scale(0.1,-0.1)">
@@ -312,7 +307,7 @@ export function getWelcomeEmailHtml(userName: string): string {
       </svg>
     </div>
     
-    <!-- HEADER with WORDMARK -->
+    <!-- HEADER -->
     <div class="header">
       <div class="logo-wordmark">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1667.41 496.00">
@@ -409,7 +404,8 @@ export function getWelcomeEmailHtml(userName: string): string {
               -175 -56 -25 -74 -29 -163 -29 -122 0 -184 19 -250 77 -52 46 -87 109 -104
               186 -8 37 -11 366 -11 1112 l0 1060 -300 0 -300 0 0 -1072z M4571 2342 c-195 -796 -356 -1453 -359 -1460 -3 -10 59 -12 303 -10
               l308 3 57 270 c32 149 63 296 69 328 l12 57 349 0 349 0 12 -57 c6 -32 37
-              -179 69 -328 l57 -270 308 -3 c244 -2 306 0 303 10 -3 7 -166 664 -363 1461              l-359 1447 -381 0 -380 0 -354 -1448z m863 278 c65 -331 116 -603 114 -606 -3
+              -179 69 -328 l57 -270 308 -3 c244 -2 306 0 303 10 -3 7 -166 664 -363 1461
+              l-359 1447 -381 0 -380 0 -354 -1448z m863 278 c65 -331 116 -603 114 -606 -3
               -2 -113 -3 -245 -2 l-240 3 88 420 c48 231 102 502 120 603 18 100 35 182 38
               182 3 0 59 -270 125 -600z M6470 2331 l0 -1461 300 0 300 0 0 550 0 550 139 0 139 0 233 -546
               c128 -300 238 -548 244 -550 5 -2 152 -3 326 -2 l317 3 -274 595 c-151 327
@@ -430,31 +426,29 @@ export function getWelcomeEmailHtml(userName: string): string {
     
     <!-- GREETING -->
     <h1>
-      Explain it to<br />
-      <span>the duck.</span>
+      Payment<br />
+      <span>failed.</span>
     </h1>
-    <p class="greeting">Welcome to Quark, ${userName}.</p>
+    <p class="greeting">Hey ${userName},</p>
+    
+    <!-- ALERT -->
+    <div class="alert-box">
+      <div class="alert-title">⚠️ Action required</div>
+      <div class="alert-text">
+        Your payment for <strong>${planName}</strong> (${amount}) didn't go through.
+      </div>
+    </div>
     
     <!-- BODY -->
     <p class="body-text">
-      You're all set to <strong>write, preview, and share</strong> browser frontend code pens — instantly.
+      Update your payment method to keep your plan active.
+      You have <strong>7 days</strong> before your account is downgraded.
     </p>
-    <p class="body-text">
-      No install. No account required to view a public pen. Just paste, render, fix, and ship the link.
-    </p>
-    
-    <!-- FEATURES -->
-    <div class="features">
-      <div class="feature">Live preview — sandboxed iframe, rebuilds on keystroke</div>
-      <div class="feature">Monaco inside — full IntelliSense, same as VS Code</div>
-      <div class="feature">CDN imports — pull any npm package from esm.sh</div>
-      <div class="feature">Fork anything — every public pen is forkable by default</div>
-    </div>
     
     <!-- CTA -->
     <div class="btn-wrapper">
-      <a href="https://quark.code/dashboard" class="btn">Launch dashboard →</a>
-      <a href="https://quark.code/explore" class="btn-secondary">Explore pens</a>
+      <a href="${updatePaymentUrl}" class="btn">Update payment →</a>
+      <a href="${retryUrl}" class="btn-secondary">Retry payment</a>
     </div>
     
     <!-- FOOTER -->
