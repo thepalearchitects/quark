@@ -131,6 +131,7 @@ export default function PublicPenPage() {
   }, [params.id])
 
   const handleCopyEmbed = () => {
+    if (!pen) return
     const embedCode = `<iframe src="${window.location.origin}/embed/${pen.id}" width="100%" height="400" style="border: none;" allow="scripts"></iframe>`
     navigator.clipboard.writeText(embedCode)
     setCopied(true)
