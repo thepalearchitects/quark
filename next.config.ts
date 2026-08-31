@@ -1,7 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  // Disable automatic generation of AGENTS.md and CLAUDE.md files
+  // @ts-ignore
+  agentRules: false,
 };
 
 export default nextConfig;
