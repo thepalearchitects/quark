@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="public/source/logo-master-black-2048.png" alt="QUARK Logo" width="180" />
+  <img src="public/source/logo-master-white-2048.png" alt="QUARK Logo" width="180" />
 </p>
 
 <h1 align="center">QUARK</h1>
