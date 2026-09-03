@@ -12,24 +12,6 @@ interface EmbedPen {
   files: { name: string; language: string; content: string }[]
 }
 
-// Mock data — will come from backend later
-const getPen = (id: string): EmbedPen | null => {
-  // Simulate 404 for certain IDs
-  if (id === '404' || id === 'deleted' || id === 'nonexistent') {
-    return null
-  }
-  
-  return {
-    id,
-    title: 'Hello Quark',
-    files: [
-      { name: 'index.html', language: 'html', content: '<h1>Hello, Quark!</h1>' },
-      { name: 'style.css', language: 'css', content: 'h1 { color: #4D8DFF; }' },
-      { name: 'script.js', language: 'js', content: 'console.log("Quark!")' },
-    ],
-  }
-}
-
 export default function EmbedPage() {
   const params = useParams()
   const [pen, setPen] = useState<EmbedPen | null>(null)
@@ -37,18 +19,37 @@ export default function EmbedPage() {
   const [isNotFound, setIsNotFound] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const data = getPen(params.id as string)
-      if (data) {
-        setPen(data)
-        setIsNotFound(false)
-      } else {
-        setPen(null)
-        setIsNotFound(true)
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/projects/${params.id}`)
+        const json = await res.json()
+        if (cancelled) return
+        if (json.success && json.data) {
+          const raw = json.data
+          setPen({
+            id: raw.id,
+            title: raw.name,
+            files: raw.files || [],
+          })
+          setIsNotFound(false)
+        } else {
+          setPen(null)
+          setIsNotFound(true)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setPen(null)
+          setIsNotFound(true)
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false)
       }
-      setIsLoading(false)
-    }, 400)
-    return () => clearTimeout(timer)
+    }, 200)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [params.id])
 
   if (isLoading) {

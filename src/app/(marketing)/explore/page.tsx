@@ -1,45 +1,55 @@
 // app/(marketing)/explore/page.tsx
+'use client'
+
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
+import { useEffect, useState } from 'react'
 
-// Mock data — will be replaced with real API later
-const mockPens = [
-  {
-    id: 'pen-1',
-    title: 'Hello Quark',
-    description: 'A simple HTML/CSS demo showing the Quark design system.',
-    tags: ['html', 'css', 'demo'],
-    author: '@maou',
-    updatedAt: '2 hours ago',
-    forks: 12,
-    views: 89,
-  },
-  {
-    id: 'pen-2',
-    title: 'Portfolio — quack',
-    description: 'Minimal portfolio page with zero-radius design.',
-    tags: ['portfolio', 'minimal'],
-    author: '@maou',
-    updatedAt: '1 day ago',
-    forks: 5,
-    views: 34,
-  },
-  {
-    id: 'pen-3',
-    title: 'Console Logger',
-    description: 'Interactive console logger with Quark styling.',
-    tags: ['javascript', 'console', 'interactive'],
-    author: '@dev',
-    updatedAt: '3 days ago',
-    forks: 8,
-    views: 56,
-  },
-]
+interface PublicPen {
+  id: string
+  title: string
+  description: string
+  tags: string[]
+  author: string
+  updatedAt: string
+  forks: number
+  views: number
+}
 
-export default async function ExplorePage() {
-  // 1-second delay for smooth UX
-  await new Promise((resolve) => setTimeout(resolve, 1000))
+export default function ExplorePage() {
+  const [pens, setPens] = useState<PublicPen[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [query, setQuery] = useState('')
+  const [sort, setSort] = useState<'recent' | 'trending'>('recent')
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const timer = setTimeout(async () => {
+      try {
+        const params = new URLSearchParams()
+        if (query) params.set('q', query)
+        params.set('sort', sort)
+        const res = await fetch(`/api/projects/public?${params.toString()}`, {
+          signal: controller.signal,
+        })
+        const json = await res.json()
+        if (json.success) {
+          setPens(json.data || [])
+        }
+      } catch (err) {
+        if ((err as Error).name !== 'AbortError') {
+          console.error('Failed to load public pens:', err)
+        }
+      } finally {
+        setIsLoading(false)
+      }
+    }, 400)
+    return () => {
+      clearTimeout(timer)
+      controller.abort()
+    }
+  }, [query, sort])
 
   return (
     <div className="px-4 py-16 md:px-8">
@@ -55,10 +65,18 @@ export default async function ExplorePage() {
             </p>
           </div>
           <div className="flex gap-3">
-            <Button variant="secondary" className="min-h-[40px] px-4 text-sm">
+            <Button
+              variant={sort === 'recent' ? 'primary' : 'secondary'}
+              className="min-h-[40px] px-4 text-sm"
+              onClick={() => setSort('recent')}
+            >
               Recent
             </Button>
-            <Button variant="secondary" className="min-h-[40px] px-4 text-sm">
+            <Button
+              variant={sort === 'trending' ? 'primary' : 'secondary'}
+              className="min-h-[40px] px-4 text-sm"
+              onClick={() => setSort('trending')}
+            >
               Trending
             </Button>
           </div>
@@ -68,46 +86,56 @@ export default async function ExplorePage() {
         <div className="mt-6">
           <input
             type="text"
-            placeholder="Search pens by name, tag, or author..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search pens by name..."
             className="w-full border border-line bg-surface2 px-4 py-3 font-mono text-sm text-ink placeholder:text-inkFaint focus:border-quarkBlue focus:shadow-snap-blue focus:outline-none"
           />
         </div>
 
         {/* Pen Grid */}
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {mockPens.map((pen) => (
-            <Link
-              key={pen.id}
-              href={`/p/${pen.id}`}
-              className="block border border-line bg-surface p-5 transition-shadow duration-75 hover:shadow-snap-blue"
-            >
-              <h3 className="font-ui text-lg font-semibold text-ink">
-                {pen.title}
-              </h3>
-              <p className="mt-1 font-mono text-sm text-inkDim line-clamp-2">
-                {pen.description}
-              </p>
-              <div className="mt-3 flex flex-wrap gap-1.5">
-                {pen.tags.map((tag) => (
-                  <Badge key={tag} variant="info" className="text-[10px]">
-                    #{tag}
-                  </Badge>
-                ))}
-              </div>
-              <div className="mt-4 flex items-center justify-between border-t border-line pt-3 font-mono text-xs text-inkFaint">
-                <span>{pen.author}</span>
-                <span>{pen.updatedAt}</span>
-              </div>
-              <div className="mt-2 flex gap-4 font-mono text-xs text-inkFaint">
-                <span>🔄 {pen.forks} forks</span>
-                <span>👁️ {pen.views} views</span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {isLoading ? (
+          <div className="mt-8 flex justify-center border border-line bg-surface p-12">
+            <p className="font-mono text-sm text-inkFaint animate-pulse">
+              Loading public pens...
+            </p>
+          </div>
+        ) : (
+          <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {pens.map((pen) => (
+              <Link
+                key={pen.id}
+                href={`/p/${pen.id}`}
+                className="block border border-line bg-surface p-5 transition-shadow duration-75 hover:shadow-snap-blue"
+              >
+                <h3 className="font-ui text-lg font-semibold text-ink">
+                  {pen.title}
+                </h3>
+                <p className="mt-1 font-mono text-sm text-inkDim line-clamp-2">
+                  {pen.description || 'No description provided.'}
+                </p>
+                <div className="mt-3 flex flex-wrap gap-1.5">
+                  {pen.tags.map((tag) => (
+                    <Badge key={tag} variant="info" className="text-[10px]">
+                      #{tag}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="mt-4 flex items-center justify-between border-t border-line pt-3 font-mono text-xs text-inkFaint">
+                  <span>{pen.author}</span>
+                  <span>{new Date(pen.updatedAt).toLocaleDateString()}</span>
+                </div>
+                <div className="mt-2 flex gap-4 font-mono text-xs text-inkFaint">
+                  <span>🔄 {pen.forks} forks</span>
+                  <span>👁️ {pen.views} views</span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* Empty State (if no pens) */}
-        {mockPens.length === 0 && (
+        {!isLoading && pens.length === 0 && (
           <div className="mt-16 flex flex-col items-center justify-center border border-line bg-surface p-12 text-center">
             <p className="font-mono text-sm text-inkDim">
               No public pens yet.

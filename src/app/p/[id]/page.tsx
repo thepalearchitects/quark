@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Logo } from '@/components/ui/Logo'
 import { buildSrcDoc } from '@/lib/preview/buildSrcDoc'
-import { useProjectStore } from '@/lib/store/projectStore'
 import { useUser } from '@clerk/nextjs'
 import { FileNode } from '@/lib/types'
 
@@ -26,87 +25,10 @@ interface Pen {
   views: number
 }
 
-// Mock data — will come from backend later
-const getPen = (id: string): Pen | null => {
-  if (id === '404' || id === 'deleted' || id === 'nonexistent') {
-    return null
-  }
-
-  return {
-    id,
-    title: 'Hello Quark',
-    description: 'A simple HTML/CSS demo showing the Quark design system.',
-    author: 'maou',
-    tags: ['html', 'css', 'demo'],
-    files: [
-      {
-        id: 'file-1-1',
-        name: 'index.html',
-        type: 'file',
-        language: 'html',
-        content: `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Hello, Quark!</title>
-  <link rel="stylesheet" href="style.css">
-</head>
-<body>
-  <div class="container">
-    <h1>Hello, Quark!</h1>
-    <p>Write code. See it live. Share it instantly.</p>
-    <button id="clickMe">Click me</button>
-  </div>
-  <script src="script.js"></script>
-</body>
-</html>`,
-      },
-      {
-        id: 'file-1-2',
-        name: 'style.css',
-        type: 'file',
-        language: 'css',
-        content: `body {
-  background: #0A0A0A;
-  color: #FFFFFF;
-  font-family: 'Space Grotesk', sans-serif;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100vh;
-}
-.container {
-  text-align: center;
-  border: 1px solid #2A2A2E;
-  padding: 48px;
-}
-h1 {
-  font-size: 40px;
-  color: #4D8DFF;
-}`,
-      },
-      {
-        id: 'file-1-3',
-        name: 'script.js',
-        type: 'file',
-        language: 'js',
-        content: `console.log("Quark initialized!");`,
-      },
-    ],
-    visibility: 'public',
-    createdAt: '2 days ago',
-    updatedAt: '1 day ago',
-    forks: 12,
-    views: 89,
-  }
-}
-
 export default function PublicPenPage() {
   const params = useParams()
   const router = useRouter()
   const { user } = useUser()
-  const { createProject, updateProject } = useProjectStore()
 
   const [pen, setPen] = useState<Pen | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -116,18 +38,47 @@ export default function PublicPenPage() {
   const [copied, setCopied] = useState(false)
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const data = getPen(params.id as string)
-      if (data) {
-        setPen(data)
-        setIsNotFound(false)
-      } else {
-        setPen(null)
-        setIsNotFound(true)
+    let cancelled = false
+    const timer = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/projects/${params.id}`)
+        const json = await res.json()
+        if (cancelled) return
+        if (json.success && json.data) {
+          const raw = json.data
+          setPen({
+            id: raw.id,
+            title: raw.name,
+            description: raw.description || '',
+            author: raw.author ? `@${raw.author}` : 'Unknown',
+            tags: raw.tags || [],
+            files: raw.files || [],
+            visibility: raw.visibility,
+            createdAt: raw.createdAt,
+            updatedAt: raw.updatedAt,
+            forks: raw.forksCount || 0,
+            views: raw.viewsCount || 0,
+          })
+          setIsNotFound(false)
+          // Record a view
+          fetch(`/api/projects/${raw.id}/view`, { method: 'POST' }).catch(() => {})
+        } else {
+          setPen(null)
+          setIsNotFound(true)
+        }
+      } catch (err) {
+        if (!cancelled) {
+          setPen(null)
+          setIsNotFound(true)
+        }
+      } finally {
+        if (!cancelled) setIsLoading(false)
       }
-      setIsLoading(false)
-    }, 600)
-    return () => clearTimeout(timer)
+    }, 300)
+    return () => {
+      cancelled = true
+      clearTimeout(timer)
+    }
   }, [params.id])
 
   const handleCopyEmbed = () => {
@@ -140,35 +91,35 @@ export default function PublicPenPage() {
 
   const handleFork = async () => {
     if (!pen) return
-    
-    // Create new project in the store
-    const forkedProject = createProject(pen.title + ' (Fork)')
-    
-    // Copy pen files into new project
-    forkedProject.files = pen.files.map((f: FileNode) => ({
-      ...f,
-      id: `file-${Date.now()}-${Math.random()}`,
-    }))
-    
-    updateProject(forkedProject)
 
     const forkerName = user?.fullName || user?.username || 'Guest Developer'
 
-    // Send Fork email notification to author
-    fetch('/api/email/fork', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        ownerEmail: 'maou@quark.dev', // Mock author email
-        ownerName: pen.author,
-        forkerName,
-        penTitle: pen.title,
-        penUrl: `${window.location.origin}/p/${pen.id}`,
-      }),
-    }).catch((err) => console.error('Failed to send fork email:', err))
+    try {
+      const res = await fetch(`/api/projects/${pen.id}/fork`, { method: 'POST' })
+      const json = await res.json()
+      if (!json.success || !json.data) {
+        console.error('Fork failed:', json.error)
+        return
+      }
 
-    // Redirect to the newly created project in the editor workspace
-    router.push(`/pen/${forkedProject.id}`)
+      // Send Fork email notification to author
+      fetch('/api/email/fork', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ownerEmail: 'maou@quark.dev',
+          ownerName: pen.author,
+          forkerName,
+          penTitle: pen.title,
+          penUrl: `${window.location.origin}/p/${pen.id}`,
+        }),
+      }).catch(() => {})
+
+      // Redirect to the newly created project in the editor workspace
+      router.push(`/pen/${json.data.id}`)
+    } catch (err) {
+      console.error('Fork failed:', err)
+    }
   }
 
   if (isLoading) {

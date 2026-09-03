@@ -1,23 +1,45 @@
 // app/(admin)/admin/pens/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 
-// Mock pens
-const mockPens = [
-  { id: 'pen-1', title: 'Hello Quark', author: 'maou', status: 'public', reports: 0, createdAt: '2 days ago' },
-  { id: 'pen-2', title: 'Portfolio — quack', author: 'maou', status: 'public', reports: 2, createdAt: '3 days ago' },
-  { id: 'pen-3', title: 'Secret Project', author: 'maou', status: 'private', reports: 0, createdAt: '4 days ago' },
-]
+interface AdminPen {
+  id: string
+  title: string
+  author: string
+  status: string
+  reports: number
+  createdAt: string
+}
 
 export default function AdminPens() {
   const [search, setSearch] = useState('')
+  const [pens, setPens] = useState<AdminPen[]>([])
+  const [isLoading, setIsLoading] = useState(true)
 
-  const filteredPens = mockPens.filter((pen) =>
+  const loadPens = async () => {
+    try {
+      const res = await fetch('/api/admin/pens')
+      const json = await res.json()
+      if (json.success) setPens(json.data || [])
+    } catch (err) {
+      console.error('Failed to load admin pens:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadPens()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  const filteredPens = pens.filter((pen) =>
     pen.title.toLowerCase().includes(search.toLowerCase())
   )
 
@@ -56,7 +78,13 @@ export default function AdminPens() {
             </tr>
           </thead>
           <tbody className="divide-y divide-line">
-            {filteredPens.map((pen) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan={6} className="px-4 py-8 text-center font-mono text-sm text-inkFaint animate-pulse">
+                  Loading pens...
+                </td>
+              </tr>
+            ) : filteredPens.map((pen) => (
               <tr key={pen.id} className="hover:bg-surface2 transition-colors">
                 <td className="px-4 py-3 font-mono text-sm text-ink">{pen.title}</td>
                 <td className="px-4 py-3 font-mono text-sm text-inkDim">{pen.author}</td>
@@ -72,7 +100,7 @@ export default function AdminPens() {
                     '0'
                   )}
                 </td>
-                <td className="px-4 py-3 font-mono text-sm text-inkDim">{pen.createdAt}</td>
+                <td className="px-4 py-3 font-mono text-sm text-inkDim">{new Date(pen.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-3">
                   <Link href={`/admin/pens/${pen.id}`}>
                     <Button variant="secondary" className="min-h-[32px] px-3 text-xs">

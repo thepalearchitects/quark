@@ -28,7 +28,7 @@ export function EditorTopBar() {
     setIsSaving(true)
 
     // fake some save latency so it doesn't feel instant
-    await new Promise((resolve) => setTimeout(resolve, 600))
+    await new Promise((resolve) => setTimeout(resolve, 300))
 
     // walk the file tree and flush editorStore buffers into the project
     const saveFilesRecursive = (nodes: FileNode[]): FileNode[] => {
@@ -56,7 +56,8 @@ export function EditorTopBar() {
       updatedAt: new Date().toISOString(),
     }
 
-    updateProject(updatedProject)
+    // persist to the database via the API
+    await updateProject(updatedProject)
 
     // all good, mark clean
     Object.keys(dirtyFiles).forEach((id) => markClean(id))
@@ -66,14 +67,15 @@ export function EditorTopBar() {
   const handlePublish = async () => {
     if (!currentProject) return
     setIsPublishing(true)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    // flip to public — TODO: this should call an API
+    await new Promise((resolve) => setTimeout(resolve, 600))
+    // flip to public and persist via the API
     const updatedProject = {
       ...currentProject,
       visibility: 'public' as const,
+      publishedAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
-    updateProject(updatedProject)
+    await updateProject(updatedProject)
     setIsPublishing(false)
   }
 

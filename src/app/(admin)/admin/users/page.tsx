@@ -1,22 +1,23 @@
 // app/(admin)/admin/users/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 
-// Mock users with roles
-const mockUsers = [
-  { id: '1', username: 'maou', email: 'maou@quark.dev', plan: 'free', role: 'admin', pens: 12, joined: '2 months ago' },
-  { id: '2', username: 'dev', email: 'dev@quark.dev', plan: 'pro', role: 'moderator', pens: 45, joined: '1 month ago' },
-  { id: '3', username: 'designer', email: 'designer@quark.dev', plan: 'free', role: 'user', pens: 8, joined: '3 weeks ago' },
-  { id: '4', username: 'coder', email: 'coder@quark.dev', plan: 'pro', role: 'user', pens: 67, joined: '1 week ago' },
-  { id: '5', username: 'builder', email: 'builder@quark.dev', plan: 'free', role: 'user', pens: 3, joined: '2 days ago' },
-]
+interface AdminUser {
+  id: string
+  username: string
+  email: string
+  plan: string
+  role: string
+  createdAt: string
+  suspended: boolean
+}
 
-const roleColors = {
+const roleColors: Record<string, string> = {
   admin: 'border-quarkRed text-quarkRed bg-quarkRed/10',
   moderator: 'border-quarkBlue text-quarkBlue bg-quarkBlue/10',
   user: 'border-inkFaint text-inkFaint bg-inkFaint/10',
@@ -24,8 +25,26 @@ const roleColors = {
 
 export default function AdminUsers() {
   const [search, setSearch] = useState('')
-  const [users, setUsers] = useState(mockUsers)
-  const [isLoading, setIsLoading] = useState(false)
+  const [users, setUsers] = useState<AdminUser[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  const loadUsers = async () => {
+    try {
+      const res = await fetch('/api/admin/users')
+      const json = await res.json()
+      if (json.success) setUsers(json.data || [])
+    } catch (err) {
+      console.error('Failed to load admin users:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const filteredUsers = users.filter((user) =>
     user.username.toLowerCase().includes(search.toLowerCase()) ||
@@ -33,13 +52,18 @@ export default function AdminUsers() {
   )
 
   const handleRoleChange = async (userId: string, newRole: string) => {
-    setIsLoading(true)
-    console.log(`Changing role for user ${userId} to ${newRole}`)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    setUsers(users.map((user) =>
-      user.id === userId ? { ...user, role: newRole } : user
-    ))
-    setIsLoading(false)
+    try {
+      await fetch(`/api/admin/users/${userId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ role: newRole }),
+      })
+      setUsers(users.map((user) =>
+        user.id === userId ? { ...user, role: newRole } : user
+      ))
+    } catch (err) {
+      console.error('Failed to change user role:', err)
+    }
   }
 
   return (
@@ -72,7 +96,7 @@ export default function AdminUsers() {
               <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-inkFaint">Email</th>
               <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-inkFaint">Plan</th>
               <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-inkFaint">Role</th>
-              <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-inkFaint">Pens</th>
+              <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-inkFaint">Status</th>
               <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-inkFaint">Joined</th>
               <th className="px-4 py-3 font-mono text-xs uppercase tracking-wider text-inkFaint">Actions</th>
             </tr>
@@ -83,7 +107,7 @@ export default function AdminUsers() {
                 <td className="px-4 py-3 font-mono text-sm text-ink">{user.username}</td>
                 <td className="px-4 py-3 font-mono text-sm text-inkDim">{user.email}</td>
                 <td className="px-4 py-3">
-                  <Badge variant={user.plan === 'pro' ? 'info' : 'live'} className="text-[10px]">
+                  <Badge variant={user.plan === 'paid' ? 'info' : 'live'} className="text-[10px]">
                     {user.plan}
                   </Badge>
                 </td>
@@ -92,8 +116,8 @@ export default function AdminUsers() {
                     {user.role}
                   </span>
                 </td>
-                <td className="px-4 py-3 font-mono text-sm text-ink">{user.pens}</td>
-                <td className="px-4 py-3 font-mono text-sm text-inkDim">{user.joined}</td>
+                <td className="px-4 py-3 font-mono text-sm text-ink">{user.suspended ? 'Suspended' : 'Active'}</td>
+                <td className="px-4 py-3 font-mono text-sm text-inkDim">{new Date(user.createdAt).toLocaleDateString()}</td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Link href={`/admin/users/${user.id}`}>

@@ -1,7 +1,7 @@
 // app/(admin)/admin/settings/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 
@@ -9,12 +9,37 @@ export default function AdminSettings() {
   const [freePublishLimit, setFreePublishLimit] = useState('3')
   const [maintenanceMode, setMaintenanceMode] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/admin/settings')
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          if (json.data.free_publish_limit) setFreePublishLimit(json.data.free_publish_limit)
+          if (json.data.maintenance_mode) setMaintenanceMode(json.data.maintenance_mode === 'true')
+        }
+      })
+      .catch((err) => console.error('Failed to load admin settings:', err))
+      .finally(() => setIsLoading(false))
+  }, [])
 
   const handleSave = async () => {
     setIsSaving(true)
-    console.log('Saving settings:', { freePublishLimit, maintenanceMode })
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-    setIsSaving(false)
+    try {
+      await fetch('/api/admin/settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          free_publish_limit: freePublishLimit,
+          maintenance_mode: String(maintenanceMode),
+        }),
+      })
+    } catch (err) {
+      console.error('Failed to save admin settings:', err)
+    } finally {
+      setIsSaving(false)
+    }
   }
 
   return (

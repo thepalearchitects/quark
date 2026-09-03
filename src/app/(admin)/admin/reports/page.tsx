@@ -1,44 +1,68 @@
 // app/(admin)/admin/reports/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
-// Mock reports
-const mockReports = [
-  { id: '1', penId: 'pen-123', reason: 'Spam', status: 'pending', createdAt: '2 hours ago', reporter: 'anonymous' },
-  { id: '2', penId: 'pen-456', reason: 'Inappropriate content', status: 'pending', createdAt: '4 hours ago', reporter: 'user-789' },
-  { id: '3', penId: 'pen-789', reason: 'Copyright violation', status: 'pending', createdAt: '1 day ago', reporter: 'user-101' },
-]
+interface Report {
+  id: string
+  projectId: string
+  reason: string
+  status: string
+  createdAt: string
+  reporterId: string
+}
 
 export default function AdminReports() {
-  const [reports, setReports] = useState(mockReports)
-  const [isLoading, setIsLoading] = useState(false)
+  const [reports, setReports] = useState<Report[]>([])
+  const [isLoading, setIsLoading] = useState(true)
   const [modalState, setModalState] = useState<{
     isOpen: boolean
     type: 'dismiss' | 'review' | null
     reportId: string | null
   }>({ isOpen: false, type: null, reportId: null })
 
+  const loadReports = async () => {
+    try {
+      const res = await fetch('/api/reports')
+      const json = await res.json()
+      if (json.success) setReports(json.data || [])
+    } catch (err) {
+      console.error('Failed to load reports:', err)
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    loadReports()
+  }, [])
+
+  const updateStatus = async (id: string, status: string) => {
+    try {
+      await fetch(`/api/admin/reports/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      })
+      setReports(reports.filter((r) => r.id !== id))
+    } catch (err) {
+      console.error('Failed to update report:', err)
+    }
+  }
+
   const handleDismiss = async () => {
-    setIsLoading(true)
     const id = modalState.reportId
-    console.log('Dismissing report:', id)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    setReports(reports.filter((r) => r.id !== id))
-    setIsLoading(false)
+    if (id) await updateStatus(id, 'dismissed')
     setModalState({ isOpen: false, type: null, reportId: null })
   }
 
   const handleReview = async () => {
-    setIsLoading(true)
     const id = modalState.reportId
-    console.log('Reviewing report:', id)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    setReports(reports.filter((r) => r.id !== id))
-    setIsLoading(false)
+    if (id) await updateStatus(id, 'reviewed')
     setModalState({ isOpen: false, type: null, reportId: null })
   }
 
@@ -76,9 +100,13 @@ export default function AdminReports() {
         </p>
       </div>
 
-      {reports.length === 0 ? (
+      {isLoading ? (
         <div className="border border-line bg-surface p-8 text-center">
-          <p className="font-mono text-sm text-quarkGreen">✓ All clear — no pending reports</p>
+          <p className="font-mono text-sm text-inkFaint animate-pulse">Loading reports...</p>
+        </div>
+      ) : reports.length === 0 ? (
+        <div className="border border-line bg-surface p-8 text-center">
+          <p className="font-mono text-sm text-quarkGreen">✓ No reports to review</p>
         </div>
       ) : (
         <div className="border border-line bg-surface divide-y divide-line">
@@ -88,10 +116,10 @@ export default function AdminReports() {
                 <div>
                   <p className="font-mono text-sm text-ink">Report #{report.id}</p>
                   <p className="font-mono text-xs text-inkDim">
-                    Pen ID: {report.penId} · {report.createdAt}
+                    Pen ID: {report.projectId} · {new Date(report.createdAt).toLocaleString()}
                   </p>
                   <p className="font-mono text-xs text-inkFaint">
-                    Reason: {report.reason} · Reported by: {report.reporter}
+                    Reason: {report.reason} · Reported by: {report.reporterId}
                   </p>
                 </div>
                 <Badge variant="error" className="text-[10px]">

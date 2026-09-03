@@ -6,26 +6,47 @@ import Link from 'next/link'
 import { Badge } from '@/components/ui/Badge'
 import { Button } from '@/components/ui/Button'
 
-// Mock data
-const stats = {
-  totalUsers: 142,
-  totalPens: 389,
-  totalReports: 12,
-  pendingReports: 5,
+interface AdminReport {
+  id: string
+  reason: string
+  status: string
+  createdAt: string
 }
-
-const recentReports = [
-  { id: '1', penId: 'pen-123', reason: 'Spam', status: 'pending', createdAt: '2 hours ago' },
-  { id: '2', penId: 'pen-456', reason: 'Inappropriate content', status: 'pending', createdAt: '4 hours ago' },
-  { id: '3', penId: 'pen-789', reason: 'Copyright violation', status: 'pending', createdAt: '1 day ago' },
-]
 
 export default function AdminOverview() {
   const [isLoading, setIsLoading] = useState(true)
+  const [stats, setStats] = useState({
+    totalUsers: 0,
+    totalPens: 0,
+    totalReports: 0,
+    pendingReports: 0,
+  })
+  const [recentReports, setRecentReports] = useState<AdminReport[]>([])
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 600)
-    return () => clearTimeout(timer)
+    let cancelled = false
+    Promise.all([
+      fetch('/api/admin/stats').then((r) => r.json()),
+      fetch('/api/reports').then((r) => r.json()),
+    ])
+      .then(([statsJson, reportsJson]) => {
+        if (cancelled) return
+        if (statsJson.success) setStats(statsJson.data)
+        if (reportsJson.success) {
+          setRecentReports(
+            (reportsJson.data || [])
+              .filter((r: AdminReport) => r.status === 'pending')
+              .slice(0, 3)
+          )
+        }
+      })
+      .catch((err) => console.error('Failed to load admin stats:', err))
+      .finally(() => {
+        if (!cancelled) setIsLoading(false)
+      })
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   if (isLoading) {
@@ -98,7 +119,7 @@ export default function AdminOverview() {
                       Report #{report.id}
                     </p>
                     <p className="font-mono text-xs text-inkDim">
-                      {report.reason} · {report.createdAt}
+                      {report.reason} · {new Date(report.createdAt).toLocaleString()}
                     </p>
                   </div>
                   <Badge variant="error" className="text-[10px]">

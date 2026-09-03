@@ -11,6 +11,7 @@ import { EditorTopBar } from '@/components/editor/EditorTopBar'
 import { ConsoleDrawer } from '@/components/editor/ConsoleDrawer'
 import { useEditorStore } from '@/lib/store/editorStore'
 import { useProjectStore } from '@/lib/store/projectStore'
+import type { Project } from '@/lib/types'
 
 export default function EditorPage() {
   const params = useParams()
@@ -18,7 +19,7 @@ export default function EditorPage() {
   const penId = params.id as string
 
   const { openFile, fileContents, openFiles } = useEditorStore()
-  const { currentProject, projects, loadProjects, createProject, setCurrentProject } = useProjectStore()
+  const { currentProject, projects, isLoading: isStoreLoading, loadProjects, createProject, setCurrentProject } = useProjectStore()
   const [isLoading, setIsLoading] = useState(true)
 
   // Initialize and load project list
@@ -28,17 +29,17 @@ export default function EditorPage() {
 
   // Handle route loading and new pen creation
   useEffect(() => {
-    if (projects.length === 0) return
+    if (isStoreLoading) return
 
     if (penId === 'new') {
-      const newPen = createProject('Untitled Pen')
-      // Pre-open main files
-      newPen.files.forEach(file => {
-        if (file.content !== undefined) {
-          openFile(file.id, file.content)
-        }
+      createProject('Untitled Pen').then((newPen) => {
+        newPen.files.forEach((file) => {
+          if (file.content !== undefined) {
+            openFile(file.id, file.content)
+          }
+        })
+        router.replace(`/pen/${newPen.id}`)
       })
-      router.replace(`/pen/${newPen.id}`)
       return
     }
 
@@ -60,10 +61,27 @@ export default function EditorPage() {
 
       setTimeout(() => setIsLoading(false), 0)
     } else {
-      // Pen not found
-      setTimeout(() => setIsLoading(false), 0)
+      // Pen not found in the owner's list — try fetching it directly by id
+      fetch(`/api/projects/${penId}`)
+        .then((res) => res.json())
+        .then((json) => {
+          if (json.success && json.data) {
+            const project = json.data as Project
+            setCurrentProject(project)
+            project.files.forEach((file) => {
+              if (file.content !== undefined && fileContents[file.id] === undefined) {
+                openFile(file.id, file.content)
+              }
+            })
+            if (openFiles.length === 0 && project.files.length > 0) {
+              openFile(project.files[0].id, project.files[0].content || '')
+            }
+          }
+          setIsLoading(false)
+        })
+        .catch(() => setIsLoading(false))
     }
-  }, [penId, projects, createProject, openFile, setCurrentProject, router, fileContents, openFiles])
+  }, [penId, projects, isStoreLoading, createProject, openFile, setCurrentProject, router, fileContents, openFiles])
 
   if (isLoading || !currentProject) {
     return (

@@ -3,23 +3,22 @@
 
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { Avatar } from '@/components/ui/Avatar'
 import { ConfirmModal } from '@/components/ui/ConfirmModal'
 
-// Mock user data
-const getUser = (id: string) => ({
-  id,
-  username: 'maou',
-  email: 'maou@quark.dev',
-  plan: 'free',
-  role: 'admin',
-  pens: 12,
-  joined: '2 months ago',
-  bio: 'Building things with Quark.',
-})
+interface AdminUser {
+  id: string
+  username: string
+  email: string
+  plan: string
+  role: string
+  createdAt: string
+  bio?: string
+  suspended: boolean
+}
 
 const roleColors = {
   admin: 'border-quarkRed text-quarkRed bg-quarkRed/10',
@@ -29,49 +28,65 @@ const roleColors = {
 
 export default function AdminUserDetail() {
   const params = useParams()
-  const [user, setUser] = useState(getUser(params.id as string))
-  const [isLoading, setIsLoading] = useState(false)
+  const [user, setUser] = useState<AdminUser | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isBusy, setIsBusy] = useState(false)
   const [modalState, setModalState] = useState<{
     isOpen: boolean
     type: 'delete' | 'suspend' | 'upgrade' | 'role' | null
   }>({ isOpen: false, type: null })
   const [pendingRole, setPendingRole] = useState<string | null>(null)
 
+  useEffect(() => {
+    fetch(`/api/admin/users/${params.id}`)
+      .then((r) => r.json())
+      .then((json) => {
+        if (json.success) setUser(json.data)
+      })
+      .finally(() => setIsLoading(false))
+  }, [params.id])
+
+  const patchUser = async (body: Record<string, unknown>) => {
+    setIsBusy(true)
+    try {
+      const res = await fetch(`/api/admin/users/${user?.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (json.success && json.data) setUser(json.data)
+    } finally {
+      setIsBusy(false)
+      setModalState({ isOpen: false, type: null })
+      setPendingRole(null)
+    }
+  }
+
   const handleRoleChange = async (newRole: string) => {
-    setIsLoading(true)
-    console.log(`Changing role for ${user.username} to ${newRole}`)
-    await new Promise((resolve) => setTimeout(resolve, 500))
-    setUser({ ...user, role: newRole })
-    setIsLoading(false)
-    setModalState({ isOpen: false, type: null })
-    setPendingRole(null)
+    await patchUser({ role: newRole })
   }
 
   const handleDelete = async () => {
-    setIsLoading(true)
-    console.log(`Deleting user ${user.username}`)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsLoading(false)
-    setModalState({ isOpen: false, type: null })
+    setIsBusy(true)
+    try {
+      await fetch(`/api/admin/users/${user?.id}`, { method: 'DELETE' })
+    } finally {
+      setIsBusy(false)
+      setModalState({ isOpen: false, type: null })
+    }
   }
 
   const handleSuspend = async () => {
-    setIsLoading(true)
-    console.log(`Suspending user ${user.username}`)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsLoading(false)
-    setModalState({ isOpen: false, type: null })
+    await patchUser({ suspended: true })
   }
 
   const handleUpgrade = async () => {
-    setIsLoading(true)
-    console.log(`Upgrading user ${user.username} to Pro`)
-    await new Promise((resolve) => setTimeout(resolve, 800))
-    setIsLoading(false)
-    setModalState({ isOpen: false, type: null })
+    await patchUser({ plan: 'paid' })
   }
 
   const getModalContent = () => {
+    if (!user) return null
     switch (modalState.type) {
       case 'delete':
         return {
@@ -116,6 +131,16 @@ export default function AdminUserDetail() {
 
   const modalContent = getModalContent()
 
+  if (!user) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center">
+        <div className="font-mono text-sm text-inkFaint animate-pulse">
+          Loading user...
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4 border-b border-line pb-4">
@@ -134,14 +159,14 @@ export default function AdminUserDetail() {
             <h2 className="font-ui text-xl font-bold text-ink">{user.username}</h2>
             <p className="font-mono text-sm text-inkDim">{user.email}</p>
             <div className="mt-2 flex flex-wrap items-center gap-2">
-              <Badge variant={user.plan === 'pro' ? 'info' : 'live'} className="text-[10px]">
+              <Badge variant={user.plan === 'paid' ? 'info' : 'live'} className="text-[10px]">
                 {user.plan}
               </Badge>
               <span className={`font-mono text-xs px-2 py-0.5 border ${roleColors[user.role as keyof typeof roleColors]}`}>
                 {user.role}
               </span>
-              <span className="font-mono text-xs text-inkFaint">• {user.pens} pens</span>
-              <span className="font-mono text-xs text-inkFaint">• Joined {user.joined}</span>
+              <span className="font-mono text-xs text-inkFaint">• {user.suspended ? 'Suspended' : 'Active'}</span>
+              <span className="font-mono text-xs text-inkFaint">• Joined {new Date(user.createdAt).toLocaleDateString()}</span>
             </div>
             {user.bio && (
               <p className="mt-3 font-mono text-sm text-inkDim">{user.bio}</p>
@@ -167,13 +192,13 @@ export default function AdminUserDetail() {
                 }
               }}
               className="border border-line bg-surface2 px-3 py-2 font-mono text-sm text-ink focus:border-quarkBlue focus:shadow-snap-blue focus:outline-none"
-              disabled={isLoading}
+              disabled={isBusy}
             >
               <option value="user">User</option>
               <option value="moderator">Moderator</option>
               <option value="admin">Admin</option>
             </select>
-            {isLoading && (
+            {isBusy && (
               <span className="font-mono text-xs text-inkFaint">Updating...</span>
             )}
           </div>
@@ -225,7 +250,7 @@ export default function AdminUserDetail() {
           description={modalContent.description}
           confirmLabel={modalContent.confirmLabel}
           variant={modalContent.variant}
-          isLoading={isLoading}
+          isLoading={isBusy}
         />
       )}
     </div>
